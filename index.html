@@ -311,10 +311,6 @@
 
     // Kollektionen speichern
     const saveCollection = (name, service, cloudLink, mainCategory, subCategory, isCollectionAdminOnly, accessCode) => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
-        return;
-      }
       const mainCategoryAdminOnly = document.getElementById("mainCategoryAdminOnlyCheckbox").checked;
       saveCategory(mainCategory, subCategory, mainCategoryAdminOnly);
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
@@ -335,10 +331,6 @@
 
     // Kollektion aktualisieren
     const updateCollection = (index, name, service, cloudLink, image, isAdminOnly, mainCategory, subCategory, accessCode) => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu bearbeiten!");
-        return;
-      }
       const mainCategoryAdminOnly = document.getElementById("editMainCategoryAdminOnlyCheckbox").checked;
       saveCategory(mainCategory, subCategory, mainCategoryAdminOnly);
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
@@ -398,7 +390,7 @@
         }
       });
 
-      // Sicherstellen, dass der adminButtons-Container korrekt angezeigt wird
+      // Admin-Buttons basierend auf isAuthenticated steuern
       const adminButtons = document.getElementById("adminButtons");
       if (isAuthenticated && adminButtons) {
         adminButtons.classList.remove("hidden");
@@ -473,10 +465,6 @@
 
     // Passwort-Manager Funktionen
     const saveCredential = (service, username, password) => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Anmeldeinformationen hinzuzufügen!");
-        return;
-      }
       const credentials = JSON.parse(localStorage.getItem("credentials") || "[]");
       credentials.push({ service, username, password: encrypt(password) });
       localStorage.setItem("credentials", JSON.stringify(credentials));
@@ -602,10 +590,6 @@
     // Event Listener für Passwort-Manager Popup
     const passwordManagerModal = document.getElementById("passwordManagerModal");
     document.getElementById("openPasswordManagerBtn").addEventListener("click", () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um den Passwort-Manager zu öffnen!");
-        return;
-      }
       passwordManagerModal.classList.remove("hidden");
       displayCredentials();
     });
@@ -618,21 +602,12 @@
 
     // Event Listener für Neue Kollektion Button
     document.getElementById("openNewCollectionBtn").addEventListener("click", () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
-        return;
-      }
       updateCategoryDropdowns('new');
       document.getElementById("newCollectionModal").classList.remove("hidden");
     });
 
     // Event Listener für Export localStorage Button
     document.getElementById("exportLocalStorageBtn").addEventListener("click", () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um die Daten zu exportieren!");
-        return;
-      }
-
       // Daten aus localStorage abrufen
       const categories = loadCategories();
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
@@ -661,11 +636,6 @@
 
     // Event Listener für Import localStorage Button
     document.getElementById("importLocalStorageBtn").addEventListener("click", () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um die Daten zu importieren!");
-        return;
-      }
-
       const input = document.createElement("input");
       input.type = "file";
       input.accept = ".json";
@@ -681,8 +651,8 @@
                 localStorage.setItem("collections", JSON.stringify(importData.collections));
                 localStorage.setItem("credentials", JSON.stringify(importData.credentials));
                 alert("Daten erfolgreich importiert!");
-                displayCollections(); // UI aktualisieren
-                displayCredentials(); // Passwort-Manager aktualisieren
+                displayCollections();
+                displayCredentials();
               } else {
                 alert("Ungültiges JSON-Format! Die Datei muss 'categories', 'collections' und 'credentials' enthalten.");
               }
@@ -696,13 +666,29 @@
       input.click();
     });
 
+    // Funktion zum Laden der Daten vom Repository
+    const loadDataFromRepository = async () => {
+      try {
+        const response = await fetch("https://raw.githubusercontent.com/FelixWeidner/FelixWeidner.github.io/main/data.json");
+        if (!response.ok) throw new Error("Netzwerkantwort war nicht ok");
+        const data = await response.json();
+        if (data.categories && data.collections && data.credentials) {
+          localStorage.setItem("categories", JSON.stringify(data.categories));
+          localStorage.setItem("collections", JSON.stringify(data.collections));
+          localStorage.setItem("credentials", JSON.stringify(data.credentials));
+          displayCollections();
+          displayCredentials();
+        } else {
+          console.warn("Repository-Daten enthalten nicht alle erforderlichen Schlüssel.");
+        }
+      } catch (error) {
+        console.error("Fehler beim Laden der Repository-Daten:", error);
+      }
+    };
+
     // Event Listener für Neues Kollektion Modal
     const newCollectionModal = document.getElementById("newCollectionModal");
     window.openNewCollectionModal = () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
-        return;
-      }
       updateCategoryDropdowns('new');
       newCollectionModal.classList.remove("hidden");
     };
@@ -746,10 +732,6 @@
     let currentEditIndex = null;
 
     window.openEditCollectionModal = (index, name, service, cloudLink) => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu bearbeiten!");
-        return;
-      }
       currentEditIndex = index;
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
       const collection = collections[index];
@@ -843,9 +825,17 @@
       }
     });
 
-    // Initiale Anzeige der Kollektionen und automatisches Öffnen des Login-Modals
+    // Tastenkombination Alt+Shift+H für Admin-Buttons
+    document.addEventListener("keydown", (event) => {
+      if (event.altKey && event.shiftKey && event.key.toLowerCase() === "h") {
+        const adminButtons = document.getElementById("adminButtons");
+        adminButtons.classList.toggle("hidden");
+      }
+    });
+
+    // Initiale Anzeige der Kollektionen und Daten vom Repository laden
+    loadDataFromRepository();
     displayCollections();
-    openLoginModal();
   </script>
 </body>
 </html>
