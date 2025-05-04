@@ -97,7 +97,7 @@
           <select id="editSubCategorySelect" class="p-2 border rounded bg-gray-700 text-white">
             <option value="">Unterkategorie wählen</option>
           </select>
-          <input disposing id="editNewMainCategoryInput" type="text" placeholder="Neue Hauptkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
+          <input id="editNewMainCategoryInput" type="text" placeholder="Neue Hauptkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
           <input id="editNewSubCategoryInput" type="text" placeholder="Neue Unterkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
           <div id="editMainCategoryAdminOnlyContainer" class="flex items-center hidden">
             <input type="checkbox" id="editMainCategoryAdminOnlyCheckbox" class="mr-2">
@@ -394,7 +394,7 @@
       const adminButtons = document.getElementById("adminButtons");
       if (isAuthenticated && adminButtons) {
         adminButtons.classList.remove("hidden");
-      } else if (!isAuthenticated && adminButtons) {
+      } else if (adminButtons) {
         adminButtons.classList.add("hidden");
       }
 
@@ -590,6 +590,10 @@
     // Event Listener für Passwort-Manager Popup
     const passwordManagerModal = document.getElementById("passwordManagerModal");
     document.getElementById("openPasswordManagerBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       passwordManagerModal.classList.remove("hidden");
       displayCredentials();
     });
@@ -602,12 +606,20 @@
 
     // Event Listener für Neue Kollektion Button
     document.getElementById("openNewCollectionBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       updateCategoryDropdowns('new');
       document.getElementById("newCollectionModal").classList.remove("hidden");
     });
 
     // Event Listener für Export localStorage Button
     document.getElementById("exportLocalStorageBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       // Daten aus localStorage abrufen
       const categories = loadCategories();
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
@@ -636,6 +648,10 @@
 
     // Event Listener für Import localStorage Button
     document.getElementById("importLocalStorageBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       const input = document.createElement("input");
       input.type = "file";
       input.accept = ".json";
@@ -690,6 +706,10 @@
     // Event Listener für Neues Kollektion Modal
     const newCollectionModal = document.getElementById("newCollectionModal");
     window.openNewCollectionModal = () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       updateCategoryDropdowns('new');
       newCollectionModal.classList.remove("hidden");
     };
@@ -733,6 +753,10 @@
     let currentEditIndex = null;
 
     window.openEditCollectionModal = (index, name, service, cloudLink) => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       currentEditIndex = index;
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
       const collection = collections[index];
@@ -829,7 +853,11 @@
     // Tastenkombination Alt+Shift+H für Admin-Buttons
     document.addEventListener("keydown", (event) => {
       if (event.altKey && event.shiftKey && event.key.toLowerCase() === "h") {
-        event.preventDefault(); // Verhindert Standardverhalten des Browsers
+        event.preventDefault();
+        if (!isAuthenticated) {
+          openLoginModal();
+          return;
+        }
         const adminButtons = document.getElementById("adminButtons");
         adminButtons.classList.toggle("hidden");
         console.log("Admin-Buttons Sichtbarkeit gewechselt:", !adminButtons.classList.contains("hidden"));
