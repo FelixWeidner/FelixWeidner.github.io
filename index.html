@@ -145,13 +145,16 @@
     </div>
   </div>
 
-  <!-- Admin Buttons (Passwort Manager und Neue Kollektion) -->
+  <!-- Admin Buttons (Passwort Manager, Neue Kollektion, Export) -->
   <div id="adminButtons" class="fixed bottom-4 right-4 flex gap-4 hidden">
     <button id="openPasswordManagerBtn" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 shadow-lg">
       🔒
     </button>
     <button id="openNewCollectionBtn" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 shadow-lg">
       ➕
+    </button>
+    <button id="exportLocalStorageBtn" class="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 shadow-lg" title="Export localStorage Data">
+      📤
     </button>
   </div>
 
@@ -611,6 +614,39 @@
       }
       updateCategoryDropdowns('new');
       document.getElementById("newCollectionModal").classList.remove("hidden");
+    });
+
+    // Event Listener für Export localStorage Button
+    document.getElementById("exportLocalStorageBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        alert("Bitte melden Sie sich an, um die Daten zu exportieren!");
+        return;
+      }
+
+      // Daten aus localStorage abrufen
+      const categories = loadCategories();
+      const collections = JSON.parse(localStorage.getItem("collections") || "[]");
+      const credentials = JSON.parse(localStorage.getItem("credentials") || "[]");
+
+      // Daten in ein Objekt zusammenfassen
+      const exportData = {
+        categories,
+        collections,
+        credentials
+      };
+
+      // Daten als JSON-Datei herunterladen
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "localStorage_export.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert("Die localStorage-Daten wurden als 'localStorage_export.json' heruntergeladen. Du kannst diese Datei als 'data.json' in dein GitHub-Repository hochladen!");
     });
 
     // Event Listener für Neues Kollektion Modal
