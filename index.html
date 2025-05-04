@@ -145,7 +145,7 @@
     </div>
   </div>
 
-  <!-- Admin Buttons (Passwort Manager, Neue Kollektion, Export) -->
+  <!-- Admin Buttons (Passwort Manager, Neue Kollektion, Export, Import) -->
   <div id="adminButtons" class="fixed bottom-4 right-4 flex gap-4 hidden">
     <button id="openPasswordManagerBtn" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 shadow-lg">
       🔒
@@ -155,6 +155,9 @@
     </button>
     <button id="exportLocalStorageBtn" class="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 shadow-lg" title="Export localStorage Data">
       📤
+    </button>
+    <button id="importLocalStorageBtn" class="bg-purple-500 text-white p-3 rounded-full hover:bg-purple-600 shadow-lg" title="Import localStorage Data">
+      📥
     </button>
   </div>
 
@@ -656,6 +659,43 @@
       alert("Die localStorage-Daten wurden als 'localStorage_export.json' heruntergeladen. Du kannst diese Datei als 'data.json' in dein GitHub-Repository hochladen!");
     });
 
+    // Event Listener für Import localStorage Button
+    document.getElementById("importLocalStorageBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        alert("Bitte melden Sie sich an, um die Daten zu importieren!");
+        return;
+      }
+
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json";
+      input.onchange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const importData = JSON.parse(e.target.result);
+              if (importData.categories && importData.collections && importData.credentials) {
+                localStorage.setItem("categories", JSON.stringify(importData.categories));
+                localStorage.setItem("collections", JSON.stringify(importData.collections));
+                localStorage.setItem("credentials", JSON.stringify(importData.credentials));
+                alert("Daten erfolgreich importiert!");
+                displayCollections(); // UI aktualisieren
+                displayCredentials(); // Passwort-Manager aktualisieren
+              } else {
+                alert("Ungültiges JSON-Format! Die Datei muss 'categories', 'collections' und 'credentials' enthalten.");
+              }
+            } catch (error) {
+              alert("Fehler beim Parsen der JSON-Datei: " + error.message);
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    });
+
     // Event Listener für Neues Kollektion Modal
     const newCollectionModal = document.getElementById("newCollectionModal");
     window.openNewCollectionModal = () => {
@@ -710,111 +750,4 @@
         alert("Bitte melden Sie sich an, um Kollektionen zu bearbeiten!");
         return;
       }
-      currentEditIndex = index;
-      const collections = JSON.parse(localStorage.getItem("collections") || "[]");
-      const collection = collections[index];
-      document.getElementById("editCollectionNameInput").value = name;
-      document.getElementById("editCollectionServiceSelect").value = service;
-      updateCategoryDropdowns('edit');
-      document.getElementById("editMainCategorySelect").value = collection.mainCategory || "";
-      document.getElementById("editSubCategorySelect").value = collection.subCategory || "";
-      document.getElementById("editNewMainCategoryInput").value = "";
-      document.getElementById("editNewSubCategoryInput").value = "";
-      document.getElementById("editGoogleDriveLinkInput").value = cloudLink || "";
-      document.getElementById("editCollectionImageInput").value = "";
-      document.getElementById("editIsAdminOnlyCheckbox").checked = collection.isAdminOnly || false;
-      document.getElementById("editAccessCodeInput").value = collection.accessCode || "";
-      editCollectionModal.classList.remove("hidden");
-    };
-
-    document.getElementById("closeEditCollectionModalBtn").addEventListener("click", () => {
-      editCollectionModal.classList.add("hidden");
-    });
-
-    document.getElementById("saveCollectionBtn").addEventListener("click", () => {
-      const name = document.getElementById("editCollectionNameInput").value;
-      const service = document.getElementById("editCollectionServiceSelect").value;
-      const cloudLink = document.getElementById("editGoogleDriveLinkInput").value;
-      const imageInput = document.getElementById("editCollectionImageInput");
-      const isAdminOnly = document.getElementById("editIsAdminOnlyCheckbox").checked;
-      const accessCode = document.getElementById("editAccessCodeInput").value.trim();
-      const mainCategorySelect = document.getElementById("editMainCategorySelect").value;
-      const subCategorySelect = document.getElementById("editSubCategorySelect").value;
-      const newMainCategory = document.getElementById("editNewMainCategoryInput").value.trim();
-      const newSubCategory = document.getElementById("editNewSubCategoryInput").value.trim();
-      const mainCategory = newMainCategory || mainCategorySelect;
-      const subCategory = newSubCategory || subCategorySelect;
-
-      if (name && service) {
-        if (imageInput.files && imageInput.files[0]) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const imageData = e.target.result;
-            updateCollection(currentEditIndex, name, service, cloudLink, imageData, isAdminOnly, mainCategory, subCategory, accessCode);
-            editCollectionModal.classList.add("hidden");
-          };
-          reader.readAsDataURL(imageInput.files[0]);
-        } else {
-          const collections = JSON.parse(localStorage.getItem("collections") || "[]");
-          const currentImage = collections[currentEditIndex]?.image || null;
-          updateCollection(currentEditIndex, name, service, cloudLink, currentImage, isAdminOnly, mainCategory, subCategory, accessCode);
-          editCollectionModal.classList.add("hidden");
-        }
-      } else {
-        alert("Bitte mindestens Kollektionsname und Cloud Service ausfüllen!");
-      }
-    });
-
-    // Event Listener für Passwort-Manager
-    document.getElementById("addCredentialBtn").addEventListener("click", () => {
-      const service = document.getElementById("serviceInput").value;
-      const username = document.getElementById("usernameInput").value;
-      const password = document.getElementById("passwordInput").value;
-      if (service && username && password) {
-        saveCredential(service, username, password);
-        document.getElementById("serviceInput").value = "";
-        document.getElementById("usernameInput").value = "";
-        document.getElementById("passwordInput").value = "";
-      } else {
-        alert("Bitte alle Felder ausfüllen!");
-      }
-    });
-
-    // Login-Modal Funktionen
-    const loginModal = document.getElementById("loginModal");
-    const openLoginModal = () => {
-      loginModal.classList.remove("hidden");
-    };
-
-    document.getElementById("closeLoginModalBtn").addEventListener("click", () => {
-      loginModal.classList.add("hidden");
-    });
-
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const username = document.getElementById("loginUsernameInput").value;
-      const password = document.getElementById("loginPasswordInput").value;
-      if (username === "seasonedcoder11" && password === "2$c3!cW9yv#GX4@r") {
-        isAuthenticated = true;
-        alert("Erfolgreich angemeldet!");
-        loginModal.classList.add("hidden");
-        document.getElementById("loginUsernameInput").value = "";
-        document.getElementById("loginPasswordInput").value = "";
-        displayCollections(); // Sicherstellen, dass die Anzeige aktualisiert wird
-      } else {
-        alert("Ungültiger Benutzername oder Passwort!");
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.altKey && event.shiftKey && event.key.toLowerCase() === "h") {
-        openLoginModal();
-      }
-    });
-
-    // Initiale Anzeige
-    updateCategoryDropdowns('new');
-    displayCredentials();
-    displayCollections();
-  </script>
-</body>
-</html>
+      currentEditIndex
