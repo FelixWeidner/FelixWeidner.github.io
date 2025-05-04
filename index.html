@@ -1,7 +1,8 @@
-<html lang="de"><head>
+<html lang="de">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud Dateien &amp; Passwort Manager</title>
+  <title>Cloud Dateien & Passwort Manager</title>
   <link href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     .collection-card {
@@ -52,22 +53,21 @@
         <div class="flex flex-col gap-2">
           <select id="mainCategorySelect" class="p-2 border rounded bg-gray-700 text-white" onchange="updateSubcategoryDropdown('new')">
             <option value="">Hauptkategorie wählen</option>
-            <!-- Dynamisch gefüllt -->
           </select>
           <select id="subCategorySelect" class="p-2 border rounded bg-gray-700 text-white">
             <option value="">Unterkategorie wählen</option>
-            <!-- Dynamisch gefüllt -->
           </select>
           <input id="newMainCategoryInput" type="text" placeholder="Neue Hauptkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
           <input id="newSubCategoryInput" type="text" placeholder="Neue Unterkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
-          <div class="flex items-center" ${isauthenticated="" ?="" ''="" :="" 'hidden'}="">
+          <div id="mainCategoryAdminOnlyContainer" class="flex items-center hidden">
             <input type="checkbox" id="mainCategoryAdminOnlyCheckbox" class="mr-2">
             <label for="mainCategoryAdminOnlyCheckbox" class="text-white">Hauptkategorie nur für Admin</label>
           </div>
         </div>
         <input id="googleDriveLinkInput" type="text" placeholder="Google Drive/OneDrive Link (optional)" class="p-2 border rounded bg-gray-700 text-white">
-        <div class="flex items-center">
-          <input type="checkbox" id="isAdminOnlyCheckbox" class="mr-2" ${isauthenticated="" ?="" ''="" :="" 'disabled'}="">
+        <input id="accessCodeInputNew" type="text" placeholder="Zugriffscode für Nicht-Admins (optional)" class="p-2 border rounded bg-gray-700 text-white">
+        <div id="isAdminOnlyContainer" class="flex items-center">
+          <input type="checkbox" id="isAdminOnlyCheckbox" class="mr-2">
           <label for="isAdminOnlyCheckbox" class="text-white">Kollektion nur für Admin</label>
         </div>
         <button id="createCollectionBtn" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Erstellen</button>
@@ -93,23 +93,22 @@
         <div class="flex flex-col gap-2">
           <select id="editMainCategorySelect" class="p-2 border rounded bg-gray-700 text-white" onchange="updateSubcategoryDropdown('edit')">
             <option value="">Hauptkategorie wählen</option>
-            <!-- Dynamisch gefüllt -->
           </select>
           <select id="editSubCategorySelect" class="p-2 border rounded bg-gray-700 text-white">
             <option value="">Unterkategorie wählen</option>
-            <!-- Dynamisch gefüllt -->
           </select>
           <input id="editNewMainCategoryInput" type="text" placeholder="Neue Hauptkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
           <input id="editNewSubCategoryInput" type="text" placeholder="Neue Unterkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
-          <div class="flex items-center" ${isauthenticated="" ?="" ''="" :="" 'hidden'}="">
+          <div id="editMainCategoryAdminOnlyContainer" class="flex items-center hidden">
             <input type="checkbox" id="editMainCategoryAdminOnlyCheckbox" class="mr-2">
             <label for="editMainCategoryAdminOnlyCheckbox" class="text-white">Hauptkategorie nur für Admin</label>
           </div>
         </div>
         <input id="editGoogleDriveLinkInput" type="text" placeholder="Google Drive/OneDrive Link (optional)" class="p-2 border rounded bg-gray-700 text-white">
         <input id="editCollectionImageInput" type="file" accept="image/*" class="p-2 border rounded bg-gray-700 text-white">
-        <div class="flex items-center">
-          <input type="checkbox" id="editIsAdminOnlyCheckbox" class="mr-2" ${isauthenticated="" ?="" ''="" :="" 'disabled'}="">
+        <input id="editAccessCodeInput" type="text" placeholder="Zugriffscode für Nicht-Admins (optional)" class="p-2 border rounded bg-gray-700 text-white">
+        <div id="editIsAdminOnlyContainer" class="flex items-center">
+          <input type="checkbox" id="editIsAdminOnlyCheckbox" class="mr-2">
           <label for="editIsAdminOnlyCheckbox" class="text-white">Kollektion nur für Admin</label>
         </div>
         <button id="saveCollectionBtn" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Speichern</button>
@@ -128,6 +127,20 @@
         <input id="loginUsernameInput" type="text" placeholder="Benutzername" class="p-2 border rounded bg-gray-700 text-white">
         <input id="loginPasswordInput" type="password" placeholder="Passwort" class="p-2 border rounded bg-gray-700 text-white">
         <button id="loginBtn" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Anmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Access Code Modal -->
+  <div id="accessCodeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold">Zugriffscode eingeben</h2>
+        <button id="closeAccessCodeModalBtn" class="text-gray-400 hover:text-gray-200">✕</button>
+      </div>
+      <div class="flex flex-col gap-4 mb-4">
+        <input id="accessCodeInput" type="text" placeholder="Zugriffscode" class="p-2 border rounded bg-gray-700 text-white">
+        <button id="submitAccessCodeBtn" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Bestätigen</button>
       </div>
     </div>
   </div>
@@ -266,7 +279,7 @@
           mainSelect.appendChild(option);
         }
       });
-      updateSubcategoryDropdown(modalType); // Aktualisiere Unterkategorien basierend auf der aktuellen Auswahl
+      updateSubcategoryDropdown(modalType);
     };
 
     // Funktion zum Aktualisieren der Unterkategorie-Dropdowns
@@ -290,35 +303,55 @@
       }
     };
 
-    // Kollektionen (werden in localStorage gespeichert)
-    const saveCollection = (name, service, cloudLink, mainCategory, subCategory, isCollectionAdminOnly) => {
+    // Kollektionen speichern
+    const saveCollection = (name, service, cloudLink, mainCategory, subCategory, isCollectionAdminOnly, accessCode) => {
       if (!isAuthenticated) {
         alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
         return;
       }
       const mainCategoryAdminOnly = document.getElementById("mainCategoryAdminOnlyCheckbox").checked;
-      saveCategory(mainCategory, subCategory, mainCategoryAdminOnly); // Speichere die neue Kategorie-Hierarchie
+      saveCategory(mainCategory, subCategory, mainCategoryAdminOnly);
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
-      collections.push({ name, service, googleDriveLink: cloudLink ? convertCloudLink(cloudLink, service) : null, image: null, isAdminOnly: isCollectionAdminOnly || false, mainCategory: mainCategory || "", subCategory: subCategory || "" });
+      collections.push({ 
+        name, 
+        service, 
+        googleDriveLink: cloudLink ? convertCloudLink(cloudLink, service) : null, 
+        image: null, 
+        isAdminOnly: isCollectionAdminOnly || false, 
+        mainCategory: mainCategory || "", 
+        subCategory: subCategory || "", 
+        accessCode: accessCode || null 
+      });
       localStorage.setItem("collections", JSON.stringify(collections));
-      updateCategoryDropdowns('new'); // Aktualisiere die Dropdowns
+      updateCategoryDropdowns('new');
       displayCollections();
     };
 
-    const updateCollection = (index, name, service, cloudLink, image, isAdminOnly, mainCategory, subCategory) => {
+    // Kollektion aktualisieren
+    const updateCollection = (index, name, service, cloudLink, image, isAdminOnly, mainCategory, subCategory, accessCode) => {
       if (!isAuthenticated) {
         alert("Bitte melden Sie sich an, um Kollektionen zu bearbeiten!");
         return;
       }
       const mainCategoryAdminOnly = document.getElementById("editMainCategoryAdminOnlyCheckbox").checked;
-      saveCategory(mainCategory, subCategory, mainCategoryAdminOnly); // Speichere die neue Kategorie-Hierarchie
+      saveCategory(mainCategory, subCategory, mainCategoryAdminOnly);
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
-      collections[index] = { name, service, googleDriveLink: cloudLink ? convertCloudLink(cloudLink, service) : null, image, isAdminOnly: isAdminOnly || false, mainCategory: mainCategory || "", subCategory: subCategory || "" };
+      collections[index] = { 
+        name, 
+        service, 
+        googleDriveLink: cloudLink ? convertCloudLink(cloudLink, service) : null, 
+        image, 
+        isAdminOnly: isAdminOnly || false, 
+        mainCategory: mainCategory || "", 
+        subCategory: subCategory || "", 
+        accessCode: accessCode || null 
+      };
       localStorage.setItem("collections", JSON.stringify(collections));
-      updateCategoryDropdowns('edit'); // Aktualisiere die Dropdowns
+      updateCategoryDropdowns('edit');
       displayCollections();
     };
 
+    // Kollektionen anzeigen
     const displayCollections = () => {
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
       const collectionsList = document.getElementById("collectionsList");
@@ -328,10 +361,12 @@
         const categories = loadCategories();
         const mainCategory = categories.find(cat => cat.name === collection.mainCategory);
         const isAdminLocked = collection.isAdminOnly || (mainCategory && mainCategory.isAdminOnly);
+
+        // Nur Kollektionen anzeigen, die nicht admin-gesperrt sind oder für authentifizierte Admins
         if (!isAdminLocked || isAuthenticated) {
           const files = getFilesForCollection(collection.service);
           const div = document.createElement("div");
-          div.className = `collection-card bg-gray-800 p-4 rounded-lg dynamic-collection ${collection.isAdminOnly ? 'admin-only' : ''} ${isAdminLocked && !isAuthenticated ? 'hidden-admin' : ''}`;
+          div.className = `collection-card bg-gray-800 p-4 rounded-lg dynamic-collection ${collection.isAdminOnly ? 'admin-only' : ''}`;
           const imageSrc = collection.image || `https://via.placeholder.com/150x200?text=${collection.name}`;
           div.innerHTML = `
             <img src="${imageSrc}" alt="${collection.name}" class="w-full h-40 object-cover rounded">
@@ -339,13 +374,17 @@
             <p class="text-center text-gray-400 text-sm">${collection.mainCategory ? collection.mainCategory + (collection.subCategory ? ' > ' + collection.subCategory : '') : ''}</p>
             <p class="text-center text-gray-400">(${files.length})</p>
             ${collection.isAdminOnly ? '<p class="text-center text-red-500 text-sm">Nur für Admin</p>' : ''}
+            ${!isAdminLocked && collection.accessCode && !isAuthenticated ? '<p class="text-center text-yellow-500 text-sm">Zugriffscode erforderlich</p>' : ''}
           `;
           collectionsList.appendChild(div);
 
-          // Beim Klick auf eine Kollektion werden die Dateien angezeigt
           div.addEventListener("click", () => {
-            if (isAdminLocked && !isAuthenticated) {
+            if (!isAuthenticated && isAdminLocked) {
               alert("Nur authentifizierte Admins können auf diese Kollektion zugreifen!");
+              return;
+            }
+            if (!isAuthenticated && !isAdminLocked && collection.accessCode) {
+              openAccessCodeModal(index, collection.service, collection.name, collection.googleDriveLink);
               return;
             }
             displayFiles(collection.service, collection.name, collection.googleDriveLink, index);
@@ -353,10 +392,14 @@
         }
       });
 
-      // Zeige Admin-Buttons nur, wenn authentifiziert
       document.getElementById("adminButtons").classList.toggle("hidden", !isAuthenticated);
+      document.getElementById("mainCategoryAdminOnlyContainer").classList.toggle("hidden", !isAuthenticated);
+      document.getElementById("editMainCategoryAdminOnlyContainer").classList.toggle("hidden", !isAuthenticated);
+      document.getElementById("isAdminOnlyContainer").classList.toggle("hidden", !isAuthenticated);
+      document.getElementById("editIsAdminOnlyContainer").classList.toggle("hidden", !isAuthenticated);
     };
 
+    // Dateien für eine Kollektion abrufen
     const getFilesForCollection = (service) => {
       const credentials = JSON.parse(localStorage.getItem("credentials") || "[]");
       const serviceCredentials = credentials.filter((cred) => cred.service === service);
@@ -368,16 +411,19 @@
       return allFiles;
     };
 
+    // Dateien einer Kollektion anzeigen
     const displayFiles = (service, collectionName, cloudLink, collectionIndex) => {
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
       const collection = collections[collectionIndex];
       const categories = loadCategories();
       const mainCategory = categories.find(cat => cat.name === collection.mainCategory);
       const isAdminLocked = collection.isAdminOnly || (mainCategory && mainCategory.isAdminOnly);
+
       if (isAdminLocked && !isAuthenticated) {
         alert("Nur authentifizierte Admins können auf diese Kollektion zugreifen!");
         return;
       }
+
       const collectionsList = document.getElementById("collectionsList");
       collectionsList.innerHTML = `
         <div class="col-span-full flex justify-between items-center mb-4">
@@ -399,7 +445,6 @@
         collectionsList.appendChild(div);
       });
 
-      // Google Drive/OneDrive Link anzeigen, falls vorhanden
       if (cloudLink) {
         const serviceName = service === "googleDrive" ? "Google Drive" : service === "oneDrive" ? "OneDrive" : "Cloud";
         const div = document.createElement("div");
@@ -442,57 +487,255 @@
       const credentials = JSON.parse(localStorage.getItem("credentials") || "[]");
       const credentialList = document.getElementById("credentialList");
       const searchTerm = document.getElementById("searchCredentials").value.toLowerCase();
+      const filteredCredentials = credentials.filter(cred => 
+        cred.service.toLowerCase().includes(searchTerm) || 
+        cred.username.toLowerCase().includes(searchTerm)
+      );
+
       credentialList.innerHTML = "";
-      credentials
-        .filter(cred => cred.service.toLowerCase().includes(searchTerm) || cred.username.toLowerCase().includes(searchTerm))
-        .forEach((cred, index) => {
-          const div = document.createElement("div");
-          div.className = "password-item flex items-center justify-between p-3 rounded-lg mb-2";
-          div.innerHTML = `
-            <div class="flex-1">
-              <p class="font-semibold">${cred.service}</p>
-              <p>Benutzername: ${cred.username}</p>
-              <p>Passwort: <span class="password" style="display: none;">${decrypt(cred.password)}</span>
-                <button class="toggle-password text-blue-500 hover:underline ml-2">👁️</button>
-              </p>
-            </div>
-            <div class="flex gap-2">
-              <button class="copy-username bg-gray-200 text-gray-900 p-1 rounded-full hover:bg-gray-300" data-value="${cred.username}">
-                📋
-              </button>
-              <button class="copy-password bg-gray-200 text-gray-900 p-1 rounded-full hover:bg-gray-300" data-value="${decrypt(cred.password)}">
-                📋
-              </button>
-              <button class="delete-btn bg-red-500 text-white p-1 rounded-full hover:bg-red-600" data-index="${index}">
-                🗑️
-              </button>
-            </div>
-          `;
-          credentialList.appendChild(div);
+      filteredCredentials.forEach((cred, index) => {
+        const div = document.createElement("div");
+        div.className = "password-item flex items-center justify-between p-3 rounded-lg mb-2";
+        div.innerHTML = `
+          <div class="flex-1">
+            <p class="font-semibold">${cred.service}</p>
+            <p>Benutzername: ${cred.username}</p>
+            <p>Passwort: <span class="password" style="display: none;">${decrypt(cred.password)}</span>
+              <button class="toggle-password text-blue-500 hover:underline ml-2">👁️</button>
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button class="copy-username bg-gray-200 text-gray-900 p-1 rounded-full hover:bg-gray-300" data-value="${cred.username}">
+              📋
+            </button>
+            <button class="copy-password bg-gray-200 text-gray-900 p-1 rounded-full hover:bg-gray-300" data-value="${decrypt(cred.password)}">
+              📋
+            </button>
+            <button class="delete-btn bg-red-500 text-white p-1 rounded-full hover:bg-red-600" data-index="${index}">
+              🗑️
+            </button>
+          </div>
+        `;
+        credentialList.appendChild(div);
 
-          // Passwort anzeigen/verbergen
-          div.querySelector(".toggle-password").addEventListener("click", () => {
-            const passwordSpan = div.querySelector(".password");
-            passwordSpan.style.display = passwordSpan.style.display === "none" ? "inline" : "none";
-          });
-
-          // Benutzername kopieren
-          div.querySelector(".copy-username").addEventListener("click", () => {
-            copyToClipboard(cred.username);
-          });
-
-          // Passwort kopieren
-          div.querySelector(".copy-password").addEventListener("click", () => {
-            copyToClipboard(decrypt(cred.password));
-          });
-
-          // Löschen
-          div.querySelector(".delete-btn").addEventListener("click", () => deleteCredential(index));
+        div.querySelector(".toggle-password").addEventListener("click", () => {
+          const passwordSpan = div.querySelector(".password");
+          passwordSpan.style.display = passwordSpan.style.display === "none" ? "inline" : "none";
         });
+
+        div.querySelector(".copy-username").addEventListener("click", () => {
+          copyToClipboard(cred.username);
+        });
+
+        div.querySelector(".copy-password").addEventListener("click", () => {
+          copyToClipboard(decrypt(cred.password));
+        });
+
+        div.querySelector(".delete-btn").addEventListener("click", () => deleteCredential(index));
+      });
     };
 
-    // Suchfunktion
+    // Zugriffscode-Modal Funktionen
+    const accessCodeModal = document.getElementById("accessCodeModal");
+    let currentAccessCollection = null;
+
+    const openAccessCodeModal = (index, service, name, cloudLink) => {
+      const collections = JSON.parse(localStorage.getItem("collections") || "[]");
+      const collection = collections[index];
+      const categories = loadCategories();
+      const mainCategory = categories.find(cat => cat.name === collection.mainCategory);
+      const isAdminLocked = collection.isAdminOnly || (mainCategory && mainCategory.isAdminOnly);
+
+      // Zugriffscode nur für nicht-admin-gesperrte Kollektionen erlauben
+      if (isAdminLocked) {
+        alert("Diese Kollektion ist nur für Admins zugänglich und kann nicht mit einem Zugriffscode entsperrt werden!");
+        return;
+      }
+
+      currentAccessCollection = { index, service, name, cloudLink };
+      document.getElementById("accessCodeInput").value = "";
+      accessCodeModal.classList.remove("hidden");
+    };
+
+    document.getElementById("closeAccessCodeModalBtn").addEventListener("click", () => {
+      accessCodeModal.classList.add("hidden");
+      currentAccessCollection = null;
+    });
+
+    document.getElementById("submitAccessCodeBtn").addEventListener("click", () => {
+      const enteredCode = document.getElementById("accessCodeInput").value;
+      const collections = JSON.parse(localStorage.getItem("collections") || "[]");
+      const collection = collections[currentAccessCollection.index];
+      const categories = loadCategories();
+      const mainCategory = categories.find(cat => cat.name === collection.mainCategory);
+      const isAdminLocked = collection.isAdminOnly || (mainCategory && mainCategory.isAdminOnly);
+
+      if (isAdminLocked) {
+        alert("Diese Kollektion ist nur für Admins zugänglich und kann nicht mit einem Zugriffscode entsperrt werden!");
+        accessCodeModal.classList.add("hidden");
+        currentAccessCollection = null;
+        return;
+      }
+
+      if (enteredCode === collection.accessCode) {
+        displayFiles(collection.service, collection.name, collection.googleDriveLink, currentAccessCollection.index);
+        accessCodeModal.classList.add("hidden");
+        currentAccessCollection = null;
+      } else {
+        alert("Ungültiger Zugriffscode!");
+      }
+    });
+
+    // Event Listener für Passwort-Manager Popup
+    const passwordManagerModal = document.getElementById("passwordManagerModal");
+    document.getElementById("openPasswordManagerBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        alert("Bitte melden Sie sich an, um den Passwort-Manager zu öffnen!");
+        return;
+      }
+      passwordManagerModal.classList.remove("hidden");
+      displayCredentials();
+    });
+
+    document.getElementById("closePasswordManagerBtn").addEventListener("click", () => {
+      passwordManagerModal.classList.add("hidden");
+    });
+
     document.getElementById("searchCredentials").addEventListener("input", displayCredentials);
+
+    // Event Listener für Neue Kollektion Button
+    document.getElementById("openNewCollectionBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
+        return;
+      }
+      updateCategoryDropdowns('new');
+      document.getElementById("newCollectionModal").classList.remove("hidden");
+    });
+
+    // Event Listener für Neues Kollektion Modal
+    const newCollectionModal = document.getElementById("newCollectionModal");
+    window.openNewCollectionModal = () => {
+      if (!isAuthenticated) {
+        alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
+        return;
+      }
+      updateCategoryDropdowns('new');
+      newCollectionModal.classList.remove("hidden");
+    };
+
+    document.getElementById("closeNewCollectionModalBtn").addEventListener("click", () => {
+      newCollectionModal.classList.add("hidden");
+    });
+
+    document.getElementById("createCollectionBtn").addEventListener("click", () => {
+      const name = document.getElementById("collectionNameInput").value;
+      const service = document.getElementById("collectionServiceSelect").value;
+      const cloudLink = document.getElementById("googleDriveLinkInput").value;
+      const accessCode = document.getElementById("accessCodeInputNew").value.trim();
+      const mainCategorySelect = document.getElementById("mainCategorySelect").value;
+      const subCategorySelect = document.getElementById("subCategorySelect").value;
+      const newMainCategory = document.getElementById("newMainCategoryInput").value.trim();
+      const newSubCategory = document.getElementById("newSubCategoryInput").value.trim();
+      const isCollectionAdminOnly = document.getElementById("isAdminOnlyCheckbox").checked;
+      const mainCategory = newMainCategory || mainCategorySelect;
+      const subCategory = newSubCategory || subCategorySelect;
+
+      if (name && service) {
+        saveCollection(name, service, cloudLink, mainCategory, subCategory, isCollectionAdminOnly, accessCode);
+        document.getElementById("collectionNameInput").value = "";
+        document.getElementById("collectionServiceSelect").value = "";
+        document.getElementById("mainCategorySelect").value = "";
+        document.getElementById("subCategorySelect").value = "";
+        document.getElementById("newMainCategoryInput").value = "";
+        document.getElementById("newSubCategoryInput").value = "";
+        document.getElementById("isAdminOnlyCheckbox").checked = false;
+        document.getElementById("googleDriveLinkInput").value = "";
+        document.getElementById("accessCodeInputNew").value = "";
+        newCollectionModal.classList.add("hidden");
+      } else {
+        alert("Bitte mindestens Kollektionsname und Cloud Service ausfüllen!");
+      }
+    });
+
+    // Event Listener für Kollektion Bearbeiten Modal
+    const editCollectionModal = document.getElementById("editCollectionModal");
+    let currentEditIndex = null;
+
+    window.openEditCollectionModal = (index, name, service, cloudLink) => {
+      if (!isAuthenticated) {
+        alert("Bitte melden Sie sich an, um Kollektionen zu bearbeiten!");
+        return;
+      }
+      currentEditIndex = index;
+      const collections = JSON.parse(localStorage.getItem("collections") || "[]");
+      const collection = collections[index];
+      document.getElementById("editCollectionNameInput").value = name;
+      document.getElementById("editCollectionServiceSelect").value = service;
+      updateCategoryDropdowns('edit');
+      document.getElementById("editMainCategorySelect").value = collection.mainCategory || "";
+      document.getElementById("editSubCategorySelect").value = collection.subCategory || "";
+      document.getElementById("editNewMainCategoryInput").value = "";
+      document.getElementById("editNewSubCategoryInput").value = "";
+      document.getElementById("editGoogleDriveLinkInput").value = cloudLink || "";
+      document.getElementById("editCollectionImageInput").value = "";
+      document.getElementById("editIsAdminOnlyCheckbox").checked = collection.isAdminOnly || false;
+      document.getElementById("editAccessCodeInput").value = collection.accessCode || "";
+      editCollectionModal.classList.remove("hidden");
+    };
+
+    document.getElementById("closeEditCollectionModalBtn").addEventListener("click", () => {
+      editCollectionModal.classList.add("hidden");
+    });
+
+    document.getElementById("saveCollectionBtn").addEventListener("click", () => {
+      const name = document.getElementById("editCollectionNameInput").value;
+      const service = document.getElementById("editCollectionServiceSelect").value;
+      const cloudLink = document.getElementById("editGoogleDriveLinkInput").value;
+      const imageInput = document.getElementById("editCollectionImageInput");
+      const isAdminOnly = document.getElementById("editIsAdminOnlyCheckbox").checked;
+      const accessCode = document.getElementById("editAccessCodeInput").value.trim();
+      const mainCategorySelect = document.getElementById("editMainCategorySelect").value;
+      const subCategorySelect = document.getElementById("editSubCategorySelect").value;
+      const newMainCategory = document.getElementById("editNewMainCategoryInput").value.trim();
+      const newSubCategory = document.getElementById("editNewSubCategoryInput").value.trim();
+      const mainCategory = newMainCategory || mainCategorySelect;
+      const subCategory = newSubCategory || subCategorySelect;
+
+      if (name && service) {
+        if (imageInput.files && imageInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imageData = e.target.result;
+            updateCollection(currentEditIndex, name, service, cloudLink, imageData, isAdminOnly, mainCategory, subCategory, accessCode);
+            editCollectionModal.classList.add("hidden");
+          };
+          reader.readAsDataURL(imageInput.files[0]);
+        } else {
+          const collections = JSON.parse(localStorage.getItem("collections") || "[]");
+          const currentImage = collections[currentEditIndex]?.image || null;
+          updateCollection(currentEditIndex, name, service, cloudLink, currentImage, isAdminOnly, mainCategory, subCategory, accessCode);
+          editCollectionModal.classList.add("hidden");
+        }
+      } else {
+        alert("Bitte mindestens Kollektionsname und Cloud Service ausfüllen!");
+      }
+    });
+
+    // Event Listener für Passwort-Manager
+    document.getElementById("addCredentialBtn").addEventListener("click", () => {
+      const service = document.getElementById("serviceInput").value;
+      const username = document.getElementById("usernameInput").value;
+      const password = document.getElementById("passwordInput").value;
+      if (service && username && password) {
+        saveCredential(service, username, password);
+        document.getElementById("serviceInput").value = "";
+        document.getElementById("usernameInput").value = "";
+        document.getElementById("passwordInput").value = "";
+      } else {
+        alert("Bitte alle Felder ausfüllen!");
+      }
+    });
 
     // Login-Modal Funktionen
     const loginModal = document.getElementById("loginModal");
@@ -519,161 +762,16 @@
       }
     });
 
-    // Tastenkombination Alt+Shift+H
     document.addEventListener("keydown", (event) => {
       if (event.altKey && event.shiftKey && event.key.toLowerCase() === "h") {
         openLoginModal();
       }
     });
 
-    // Event Listener für Passwort-Manager Popup
-    const passwordManagerModal = document.getElementById("passwordManagerModal");
-    document.getElementById("openPasswordManagerBtn").addEventListener("click", () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um den Passwort-Manager zu öffnen!");
-        return;
-      }
-      passwordManagerModal.classList.remove("hidden");
-      displayCredentials();
-    });
-
-    document.getElementById("closePasswordManagerBtn").addEventListener("click", () => {
-      passwordManagerModal.classList.add("hidden");
-    });
-
-    // Event Listener für Neue Kollektion Button
-    document.getElementById("openNewCollectionBtn").addEventListener("click", () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
-        return;
-      }
-      updateCategoryDropdowns('new'); // Aktualisiere die Dropdowns beim Öffnen
-      document.getElementById("newCollectionModal").classList.remove("hidden");
-    });
-
-    // Event Listener für Neues Kollektion Modal
-    const newCollectionModal = document.getElementById("newCollectionModal");
-    window.openNewCollectionModal = () => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu erstellen!");
-        return;
-      }
-      updateCategoryDropdowns('new'); // Aktualisiere die Dropdowns beim Öffnen
-      newCollectionModal.classList.remove("hidden");
-    };
-
-    document.getElementById("closeNewCollectionModalBtn").addEventListener("click", () => {
-      newCollectionModal.classList.add("hidden");
-    });
-
-    document.getElementById("createCollectionBtn").addEventListener("click", () => {
-      const name = document.getElementById("collectionNameInput").value;
-      const service = document.getElementById("collectionServiceSelect").value;
-      const cloudLink = document.getElementById("googleDriveLinkInput").value;
-      const mainCategorySelect = document.getElementById("mainCategorySelect").value;
-      const subCategorySelect = document.getElementById("subCategorySelect").value;
-      const newMainCategory = document.getElementById("newMainCategoryInput").value.trim();
-      const newSubCategory = document.getElementById("newSubCategoryInput").value.trim();
-      const isCollectionAdminOnly = document.getElementById("isAdminOnlyCheckbox").checked;
-      const mainCategory = newMainCategory || mainCategorySelect;
-      const subCategory = newSubCategory || subCategorySelect;
-      if (name && service) {
-        saveCollection(name, service, cloudLink, mainCategory, subCategory, isCollectionAdminOnly);
-        document.getElementById("collectionNameInput").value = "";
-        document.getElementById("collectionServiceSelect").value = "";
-        document.getElementById("mainCategorySelect").value = "";
-        document.getElementById("subCategorySelect").value = "";
-        document.getElementById("newMainCategoryInput").value = "";
-        document.getElementById("newSubCategoryInput").value = "";
-        document.getElementById("isAdminOnlyCheckbox").checked = false;
-        document.getElementById("googleDriveLinkInput").value = "";
-        newCollectionModal.classList.add("hidden");
-      } else {
-        alert("Bitte mindestens Kollektionsname und Cloud Service ausfüllen!");
-      }
-    });
-
-    // Event Listener für Kollektion Bearbeiten Modal
-    const editCollectionModal = document.getElementById("editCollectionModal");
-    let currentEditIndex = null;
-
-    window.openEditCollectionModal = (index, name, service, cloudLink) => {
-      if (!isAuthenticated) {
-        alert("Bitte melden Sie sich an, um Kollektionen zu bearbeiten!");
-        return;
-      }
-      currentEditIndex = index;
-      const collections = JSON.parse(localStorage.getItem("collections") || "[]");
-      const collection = collections[index];
-      document.getElementById("editCollectionNameInput").value = name;
-      document.getElementById("editCollectionServiceSelect").value = service;
-      updateCategoryDropdowns('edit'); // Aktualisiere die Dropdowns beim Öffnen
-      document.getElementById("editMainCategorySelect").value = collection.mainCategory || "";
-      document.getElementById("editSubCategorySelect").value = collection.subCategory || "";
-      document.getElementById("editNewMainCategoryInput").value = ""; // Reset new category input
-      document.getElementById("editNewSubCategoryInput").value = ""; // Reset new subcategory input
-      document.getElementById("editGoogleDriveLinkInput").value = cloudLink || "";
-      document.getElementById("editCollectionImageInput").value = ""; // Reset file input
-      document.getElementById("editIsAdminOnlyCheckbox").checked = collection.isAdminOnly || false;
-      editCollectionModal.classList.remove("hidden");
-    };
-
-    document.getElementById("closeEditCollectionModalBtn").addEventListener("click", () => {
-      editCollectionModal.classList.add("hidden");
-    });
-
-    document.getElementById("saveCollectionBtn").addEventListener("click", () => {
-      const name = document.getElementById("editCollectionNameInput").value;
-      const service = document.getElementById("editCollectionServiceSelect").value;
-      const cloudLink = document.getElementById("editGoogleDriveLinkInput").value;
-      const imageInput = document.getElementById("editCollectionImageInput");
-      const isAdminOnly = document.getElementById("editIsAdminOnlyCheckbox").checked;
-      const mainCategorySelect = document.getElementById("editMainCategorySelect").value;
-      const subCategorySelect = document.getElementById("editSubCategorySelect").value;
-      const newMainCategory = document.getElementById("editNewMainCategoryInput").value.trim();
-      const newSubCategory = document.getElementById("editNewSubCategoryInput").value.trim();
-      const mainCategory = newMainCategory || mainCategorySelect;
-      const subCategory = newSubCategory || subCategorySelect;
-      if (name && service) {
-        if (imageInput.files && imageInput.files[0]) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const imageData = e.target.result;
-            updateCollection(currentEditIndex, name, service, cloudLink, imageData, isAdminOnly, mainCategory, subCategory);
-            editCollectionModal.classList.add("hidden");
-          };
-          reader.readAsDataURL(imageInput.files[0]);
-        } else {
-          // Kein neues Bild ausgewählt, behalte das alte Bild oder null
-          const collections = JSON.parse(localStorage.getItem("collections") || "[]");
-          const currentImage = collections[currentEditIndex]?.image || null;
-          updateCollection(currentEditIndex, name, service, cloudLink, currentImage, isAdminOnly, mainCategory, subCategory);
-          editCollectionModal.classList.add("hidden");
-        }
-      } else {
-        alert("Bitte mindestens Kollektionsname und Cloud Service ausfüllen!");
-      }
-    });
-
-    // Event Listener für Passwort-Manager
-    document.getElementById("addCredentialBtn").addEventListener("click", () => {
-      const service = document.getElementById("serviceInput").value;
-      const username = document.getElementById("usernameInput").value;
-      const password = document.getElementById("passwordInput").value;
-      if (service && username && password) {
-        saveCredential(service, username, password);
-        document.getElementById("serviceInput").value = "";
-        document.getElementById("usernameInput").value = "";
-        document.getElementById("passwordInput").value = "";
-      } else {
-        alert("Bitte alle Felder ausfüllen!");
-      }
-    });
-
     // Initiale Anzeige
-    updateCategoryDropdowns('new'); // Initialisiere die Dropdowns
+    updateCategoryDropdowns('new');
     displayCredentials();
     displayCollections();
   </script>
-
-</body></html>
+</body>
+</html>
