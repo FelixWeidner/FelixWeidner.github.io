@@ -251,6 +251,10 @@
 
     // Funktion zum Speichern einer neuen Kategorie oder Unterkategorie
     const saveCategory = (mainCategory, subCategory, isAdminOnly) => {
+      if (!isAuthenticated) {
+        alert("Nur authentifizierte Admins können Kategorien speichern!");
+        return;
+      }
       if (!mainCategory && !subCategory) return;
       let categories = loadCategories();
       if (mainCategory) {
@@ -311,6 +315,10 @@
 
     // Kollektionen speichern
     const saveCollection = (name, service, cloudLink, mainCategory, subCategory, isCollectionAdminOnly, accessCode) => {
+      if (!isAuthenticated) {
+        alert("Nur authentifizierte Admins können Kollektionen speichern!");
+        return;
+      }
       const mainCategoryAdminOnly = document.getElementById("mainCategoryAdminOnlyCheckbox").checked;
       saveCategory(mainCategory, subCategory, mainCategoryAdminOnly);
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
@@ -331,6 +339,10 @@
 
     // Kollektion aktualisieren
     const updateCollection = (index, name, service, cloudLink, image, isAdminOnly, mainCategory, subCategory, accessCode) => {
+      if (!isAuthenticated) {
+        alert("Nur authentifizierte Admins können Kollektionen bearbeiten!");
+        return;
+      }
       const mainCategoryAdminOnly = document.getElementById("editMainCategoryAdminOnlyCheckbox").checked;
       saveCategory(mainCategory, subCategory, mainCategoryAdminOnly);
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
@@ -351,6 +363,7 @@
 
     // Kollektionen anzeigen
     const displayCollections = () => {
+      console.log("displayCollections aufgerufen, isAuthenticated:", isAuthenticated);
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
       const collectionsList = document.getElementById("collectionsList");
       collectionsList.innerHTML = "";
@@ -465,6 +478,10 @@
 
     // Passwort-Manager Funktionen
     const saveCredential = (service, username, password) => {
+      if (!isAuthenticated) {
+        alert("Nur authentifizierte Admins können Anmeldeinformationen speichern!");
+        return;
+      }
       const credentials = JSON.parse(localStorage.getItem("credentials") || "[]");
       credentials.push({ service, username, password: encrypt(password) });
       localStorage.setItem("credentials", JSON.stringify(credentials));
@@ -472,6 +489,10 @@
     };
 
     const deleteCredential = (index) => {
+      if (!isAuthenticated) {
+        alert("Nur authentifizierte Admins können Anmeldeinformationen löschen!");
+        return;
+      }
       const credentials = JSON.parse(localStorage.getItem("credentials") || "[]");
       credentials.splice(index, 1);
       localStorage.setItem("credentials", JSON.stringify(credentials));
@@ -547,7 +568,6 @@
       const mainCategory = categories.find(cat => cat.name === collection.mainCategory);
       const isAdminLocked = collection.isAdminOnly || (mainCategory && mainCategory.isAdminOnly);
 
-      // Zugriffscode nur für nicht-admin-gesperrte Kollektionen erlauben
       if (isAdminLocked) {
         alert("Diese Kollektion ist nur für Admins zugänglich und kann nicht mit einem Zugriffscode entsperrt werden!");
         return;
@@ -620,19 +640,16 @@
         openLoginModal();
         return;
       }
-      // Daten aus localStorage abrufen
       const categories = loadCategories();
       const collections = JSON.parse(localStorage.getItem("collections") || "[]");
       const credentials = JSON.parse(localStorage.getItem("credentials") || "[]");
 
-      // Daten in ein Objekt zusammenfassen
       const exportData = {
         categories,
         collections,
         credentials
       };
 
-      // Daten als JSON-Datei herunterladen
       const dataStr = JSON.stringify(exportData, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -684,10 +701,14 @@
 
     // Funktion zum Laden der Daten vom Repository
     const loadDataFromRepository = async () => {
+      console.log("Versuche, Daten vom Repository zu laden...");
       try {
         const response = await fetch("https://raw.githubusercontent.com/FelixWeidner/FelixWeidner.github.io/main/data.json");
-        if (!response.ok) throw new Error(`Netzwerkantwort war nicht ok: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Netzwerkantwort war nicht ok: ${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
+        console.log("Geladene Daten:", data);
         if (data.categories && data.collections && data.credentials) {
           localStorage.setItem("categories", JSON.stringify(data.categories));
           localStorage.setItem("collections", JSON.stringify(data.collections));
@@ -697,9 +718,11 @@
           displayCredentials();
         } else {
           console.warn("Repository-Daten enthalten nicht alle erforderlichen Schlüssel (categories, collections, credentials).");
+          alert("Die geladenen Daten enthalten nicht alle erforderlichen Schlüssel (categories, collections, credentials).");
         }
       } catch (error) {
         console.error("Fehler beim Laden der Repository-Daten:", error.message);
+        alert("Fehler beim Laden der Repository-Daten: " + error.message);
       }
     };
 
@@ -719,6 +742,10 @@
     });
 
     document.getElementById("createCollectionBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       const name = document.getElementById("collectionNameInput").value;
       const service = document.getElementById("collectionServiceSelect").value;
       const cloudLink = document.getElementById("googleDriveLinkInput").value;
@@ -779,6 +806,10 @@
     });
 
     document.getElementById("saveCollectionBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       const name = document.getElementById("editCollectionNameInput").value;
       const service = document.getElementById("editCollectionServiceSelect").value;
       const cloudLink = document.getElementById("editGoogleDriveLinkInput").value;
@@ -814,6 +845,10 @@
 
     // Event Listener für Passwort-Manager
     document.getElementById("addCredentialBtn").addEventListener("click", () => {
+      if (!isAuthenticated) {
+        openLoginModal();
+        return;
+      }
       const service = document.getElementById("serviceInput").value;
       const username = document.getElementById("usernameInput").value;
       const password = document.getElementById("passwordInput").value;
@@ -842,10 +877,12 @@
       const password = document.getElementById("loginPasswordInput").value;
       if (username === "seasonedcoder11" && password === "2$c3!cW9yv#GX4@r") {
         isAuthenticated = true;
+        console.log("Anmeldung erfolgreich, isAuthenticated:", isAuthenticated);
         alert("Erfolgreich angemeldet!");
         loginModal.classList.add("hidden");
         displayCollections();
       } else {
+        console.log("Anmeldung fehlgeschlagen, isAuthenticated:", isAuthenticated);
         alert("Ungültiger Benutzername oder Passwort!");
       }
     });
@@ -854,7 +891,9 @@
     document.addEventListener("keydown", (event) => {
       if (event.altKey && event.shiftKey && event.key.toLowerCase() === "h") {
         event.preventDefault();
+        console.log("Alt+Shift+H gedrückt, isAuthenticated:", isAuthenticated);
         if (!isAuthenticated) {
+          console.log("Nicht authentifiziert, öffne Login-Modal");
           openLoginModal();
           return;
         }
@@ -865,6 +904,7 @@
     });
 
     // Initiale Anzeige der Kollektionen und Daten vom Repository laden
+    console.log("Initialer Aufruf von loadDataFromRepository");
     loadDataFromRepository();
     displayCollections();
   </script>
