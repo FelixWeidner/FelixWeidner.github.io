@@ -97,7 +97,7 @@
           <select id="editSubCategorySelect" class="p-2 border rounded bg-gray-700 text-white">
             <option value="">Unterkategorie wählen</option>
           </select>
-          <input id="editNewMainCategoryInput" type="text" placeholder="Neue Hauptkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
+          <input disposing id="editNewMainCategoryInput" type="text" placeholder="Neue Hauptkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
           <input id="editNewSubCategoryInput" type="text" placeholder="Neue Unterkategorie (optional)" class="p-2 border rounded bg-gray-700 text-white">
           <div id="editMainCategoryAdminOnlyContainer" class="flex items-center hidden">
             <input type="checkbox" id="editMainCategoryAdminOnlyCheckbox" class="mr-2">
@@ -670,19 +670,20 @@
     const loadDataFromRepository = async () => {
       try {
         const response = await fetch("https://raw.githubusercontent.com/FelixWeidner/FelixWeidner.github.io/main/data.json");
-        if (!response.ok) throw new Error("Netzwerkantwort war nicht ok");
+        if (!response.ok) throw new Error(`Netzwerkantwort war nicht ok: ${response.status}`);
         const data = await response.json();
         if (data.categories && data.collections && data.credentials) {
           localStorage.setItem("categories", JSON.stringify(data.categories));
           localStorage.setItem("collections", JSON.stringify(data.collections));
           localStorage.setItem("credentials", JSON.stringify(data.credentials));
+          console.log("Daten erfolgreich vom Repository geladen und in localStorage gespeichert.");
           displayCollections();
           displayCredentials();
         } else {
-          console.warn("Repository-Daten enthalten nicht alle erforderlichen Schlüssel.");
+          console.warn("Repository-Daten enthalten nicht alle erforderlichen Schlüssel (categories, collections, credentials).");
         }
       } catch (error) {
-        console.error("Fehler beim Laden der Repository-Daten:", error);
+        console.error("Fehler beim Laden der Repository-Daten:", error.message);
       }
     };
 
@@ -828,8 +829,10 @@
     // Tastenkombination Alt+Shift+H für Admin-Buttons
     document.addEventListener("keydown", (event) => {
       if (event.altKey && event.shiftKey && event.key.toLowerCase() === "h") {
+        event.preventDefault(); // Verhindert Standardverhalten des Browsers
         const adminButtons = document.getElementById("adminButtons");
         adminButtons.classList.toggle("hidden");
+        console.log("Admin-Buttons Sichtbarkeit gewechselt:", !adminButtons.classList.contains("hidden"));
       }
     });
 
