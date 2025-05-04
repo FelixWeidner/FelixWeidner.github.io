@@ -208,16 +208,6 @@
       "mainCategory": "Games",
       "subCategory": "",
       "accessCode": null
-    },
-    {
-      "name": "Pico Park 2",
-      "service": "googleDrive",
-      "googleDriveLink": "https://drive.google.com/uc?export=download&id=13syQ6h1q03VwFXn-K97kKLHYGlvTzemk",
-      "image": null,
-      "isAdminOnly": false,
-      "mainCategory": "Games",
-      "subCategory": "",
-      "accessCode": null
     }
   ],
   "credentials": []
