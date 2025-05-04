@@ -395,7 +395,14 @@
         }
       });
 
-      document.getElementById("adminButtons").classList.toggle("hidden", !isAuthenticated);
+      // Sicherstellen, dass der adminButtons-Container korrekt angezeigt wird
+      const adminButtons = document.getElementById("adminButtons");
+      if (isAuthenticated && adminButtons) {
+        adminButtons.classList.remove("hidden");
+      } else if (!isAuthenticated && adminButtons) {
+        adminButtons.classList.add("hidden");
+      }
+
       document.getElementById("mainCategoryAdminOnlyContainer").classList.toggle("hidden", !isAuthenticated);
       document.getElementById("editMainCategoryAdminOnlyContainer").classList.toggle("hidden", !isAuthenticated);
       document.getElementById("isAdminOnlyContainer").classList.toggle("hidden", !isAuthenticated);
@@ -792,7 +799,7 @@
         loginModal.classList.add("hidden");
         document.getElementById("loginUsernameInput").value = "";
         document.getElementById("loginPasswordInput").value = "";
-        displayCollections();
+        displayCollections(); // Sicherstellen, dass die Anzeige aktualisiert wird
       } else {
         alert("Ungültiger Benutzername oder Passwort!");
       }
