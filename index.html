@@ -750,4 +750,102 @@
         alert("Bitte melden Sie sich an, um Kollektionen zu bearbeiten!");
         return;
       }
-      currentEditIndex
+      currentEditIndex = index;
+      const collections = JSON.parse(localStorage.getItem("collections") || "[]");
+      const collection = collections[index];
+      document.getElementById("editCollectionNameInput").value = name;
+      document.getElementById("editCollectionServiceSelect").value = service;
+      updateCategoryDropdowns('edit');
+      document.getElementById("editMainCategorySelect").value = collection.mainCategory || "";
+      document.getElementById("editSubCategorySelect").value = collection.subCategory || "";
+      document.getElementById("editNewMainCategoryInput").value = "";
+      document.getElementById("editNewSubCategoryInput").value = "";
+      document.getElementById("editGoogleDriveLinkInput").value = cloudLink || "";
+      document.getElementById("editCollectionImageInput").value = "";
+      document.getElementById("editIsAdminOnlyCheckbox").checked = collection.isAdminOnly || false;
+      document.getElementById("editAccessCodeInput").value = collection.accessCode || "";
+      editCollectionModal.classList.remove("hidden");
+    };
+
+    document.getElementById("closeEditCollectionModalBtn").addEventListener("click", () => {
+      editCollectionModal.classList.add("hidden");
+    });
+
+    document.getElementById("saveCollectionBtn").addEventListener("click", () => {
+      const name = document.getElementById("editCollectionNameInput").value;
+      const service = document.getElementById("editCollectionServiceSelect").value;
+      const cloudLink = document.getElementById("editGoogleDriveLinkInput").value;
+      const imageInput = document.getElementById("editCollectionImageInput");
+      const isAdminOnly = document.getElementById("editIsAdminOnlyCheckbox").checked;
+      const accessCode = document.getElementById("editAccessCodeInput").value.trim();
+      const mainCategorySelect = document.getElementById("editMainCategorySelect").value;
+      const subCategorySelect = document.getElementById("editSubCategorySelect").value;
+      const newMainCategory = document.getElementById("editNewMainCategoryInput").value.trim();
+      const newSubCategory = document.getElementById("editNewSubCategoryInput").value.trim();
+      const mainCategory = newMainCategory || mainCategorySelect;
+      const subCategory = newSubCategory || subCategorySelect;
+
+      if (name && service) {
+        if (imageInput.files && imageInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imageData = e.target.result;
+            updateCollection(currentEditIndex, name, service, cloudLink, imageData, isAdminOnly, mainCategory, subCategory, accessCode);
+            editCollectionModal.classList.add("hidden");
+          };
+          reader.readAsDataURL(imageInput.files[0]);
+        } else {
+          const collections = JSON.parse(localStorage.getItem("collections") || "[]");
+          const currentImage = collections[currentEditIndex]?.image || null;
+          updateCollection(currentEditIndex, name, service, cloudLink, currentImage, isAdminOnly, mainCategory, subCategory, accessCode);
+          editCollectionModal.classList.add("hidden");
+        }
+      } else {
+        alert("Bitte mindestens Kollektionsname und Cloud Service ausfüllen!");
+      }
+    });
+
+    // Event Listener für Passwort-Manager
+    document.getElementById("addCredentialBtn").addEventListener("click", () => {
+      const service = document.getElementById("serviceInput").value;
+      const username = document.getElementById("usernameInput").value;
+      const password = document.getElementById("passwordInput").value;
+      if (service && username && password) {
+        saveCredential(service, username, password);
+        document.getElementById("serviceInput").value = "";
+        document.getElementById("usernameInput").value = "";
+        document.getElementById("passwordInput").value = "";
+      } else {
+        alert("Bitte alle Felder ausfüllen!");
+      }
+    });
+
+    // Login-Modal Funktionen
+    const loginModal = document.getElementById("loginModal");
+    const openLoginModal = () => {
+      loginModal.classList.remove("hidden");
+    };
+
+    document.getElementById("closeLoginModalBtn").addEventListener("click", () => {
+      loginModal.classList.add("hidden");
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const username = document.getElementById("loginUsernameInput").value;
+      const password = document.getElementById("loginPasswordInput").value;
+      if (username === "seasonedcoder11" && password === "2$c3!cW9yv#GX4@r") {
+        isAuthenticated = true;
+        alert("Erfolgreich angemeldet!");
+        loginModal.classList.add("hidden");
+        displayCollections();
+      } else {
+        alert("Ungültiger Benutzername oder Passwort!");
+      }
+    });
+
+    // Initiale Anzeige der Kollektionen und automatisches Öffnen des Login-Modals
+    displayCollections();
+    openLoginModal();
+  </script>
+</body>
+</html>
