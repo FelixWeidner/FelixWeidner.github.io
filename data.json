@@ -223,6 +223,36 @@
       "mainCategory": "Games",
       "subCategory": "",
       "accessCode": "nwZQ62t0"
+    },
+    {
+      "name": "A game about digging a hole",
+      "service": "googleDrive",
+      "googleDriveLink": "https://drive.google.com/uc?export=download&id=1x47EzWFrElJAHHIz_bIZb7Xn-HdJWJsq",
+      "image": null,
+      "isAdminOnly": false,
+      "mainCategory": "Games",
+      "subCategory": "",
+      "accessCode": null
+    },
+    {
+      "name": "Buckshot Roulette",
+      "service": "googleDrive",
+      "googleDriveLink": "https://drive.google.com/uc?export=download&id=1otBbMHVKWR0sY_PJYzI3W1o8F8LddbBW",
+      "image": null,
+      "isAdminOnly": false,
+      "mainCategory": "Games",
+      "subCategory": "",
+      "accessCode": null
+    }
+    {
+      "name": "Pawn Shop Simulator",
+      "service": "googleDrive",
+      "googleDriveLink": "*",
+      "image": null,
+      "isAdminOnly": false,
+      "mainCategory": "Games",
+      "subCategory": "",
+      "accessCode": null
     }
   ],
   "credentials": []
