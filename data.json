@@ -244,16 +244,6 @@
       "subCategory": "",
       "accessCode": null
     }
-    {
-      "name": "Pawn Shop Simulator",
-      "service": "googleDrive",
-      "googleDriveLink": "*",
-      "image": null,
-      "isAdminOnly": false,
-      "mainCategory": "Games",
-      "subCategory": "",
-      "accessCode": null
-    }
   ],
   "credentials": []
 }
